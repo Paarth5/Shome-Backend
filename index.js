@@ -42,6 +42,7 @@ app.post("/login", async (req, res) => {
       {
         userId: user._id,
         username: user.username,
+        fullName: `${user.firstname} ${user.lastname}`,
       },
       process.env.JWT_SECRET,
       {
@@ -71,6 +72,7 @@ app.post("/register", async (req, res) => {
       {
         userId: user._id,
         username: user.username,
+        fullName: `${user.firstname} ${user.lastname}`,
       },
       process.env.JWT_SECRET,
       {
