@@ -8,6 +8,7 @@ import morgan from "morgan";
 import path from "path";
 import { fileURLToPath } from "url";
 import bcrypt from "bcrypt";
+import jwt from "jsonwebtoken";
 import User from "./models/user.js";
 /* CONFIGURATIONS */
 const __filename = fileURLToPath(import.meta.url);
@@ -37,9 +38,17 @@ app.post("/login", async (req, res) => {
     if (!user) return res.status(400).json({ msg: "User does not exist. " });
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) return res.status(400).json({ msg: "Invalid credentials. " });
-    const userObject = user.toObject();
-    delete userObject.password;
-    res.status(200).json({ user: userObject });
+    const token = jwt.sign(
+      {
+        userId: user._id,
+        username: user.username,
+      },
+      process.env.JWT_SECRET,
+      {
+        expiresIn: "24h",
+      }
+    );
+    res.status(200).json({ token });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -57,8 +66,18 @@ app.post("/register", async (req, res) => {
       password: passwordHash,
     });
 
-    const savedUser = await newUser.save();
-    res.status(201).json(savedUser);
+    const user = await newUser.save();
+    const token = jwt.sign(
+      {
+        userId: user._id,
+        username: user.username,
+      },
+      process.env.JWT_SECRET,
+      {
+        expiresIn: "24h",
+      }
+    );
+    res.status(200).json({ token });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
